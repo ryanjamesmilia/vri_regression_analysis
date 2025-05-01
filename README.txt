@@ -1,5 +1,10 @@
 ##################################################################################################################
 
+This notebook develops a regression-based machine learning model to predict crown closure using key forest
+inventory attributes from Vegetation Resource Inventory (VRI) data.
+
+##################################################################################################################
+
 This project was created by Ryan Milia as part of the Geospatial Data Analytics Program at the 
 Centre of Geographic Sciences, Nova Scotia Community College, Lawrencetown, Nova Scotia. It is 
 intended for educational purposes only. All content is unedited and unverified. © 2024 COGS
