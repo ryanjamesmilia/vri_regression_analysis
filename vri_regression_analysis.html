@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VRI Regression Analysis</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Prism.js for syntax highlighting -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+
+  <style>
+    /* Add some basic styling for the container */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Styling for code blocks to make them scrollable */
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-y: auto;  /* Enables vertical scrolling */
+      max-height: 400px; /* Limits the height of the code block */
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    code {
+      display: block;
+    }
+
+    /* Optional: Add syntax highlighting styles */
+    .language-python {
+      background-color: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VRI Regression Analysis</h1>
+    <p>
+      Crown closure is a key forest metric representing the proportion of ground covered by tree canopies. It influences habitat
+      suitability, light availability, and stand productivity. This project develops a regression-based machine learning model to
+      predict crown closure using key forest inventory attributes from Vegetation Resource Inventory (VRI) data. This project 
+      follows a structured machine learning workflow, including data preprocessing, exploratory analysis, feature selection, model
+      training, and evaluation, to optimize model performance.
+    </p>
+    <p>
+      The dataset used in this project is sourced from the British Columbia Vegetation Resource Inventory (VRI), which provides 
+      stand-level forest attributes collected through remote sensing and field surveys. The target variable for this analysis is
+      crown closure (%), which represents the proportion of the forest floor covered by tree canopies. The predictor variables
+      selected for the model are basal area (m²/ha), VRI live stems per hectare, projected age (years), projected height (m), 
+      and whole stem biomass per hectare (Mg/ha). 
+    </p>
+    <p>
+      The original dataset contains VRI data for the whole province of British Columbia. I filtered the data in ArcGIS Pro to exclude
+      all projects except for TFL 38, a tree farm licence located northwest of Squamish, BC. I also filtered out all unnecessary fields.
+    </p>
+    <p>
+      <strong>Note:</strong> Selected code snippets are included below to highlight key parts of the project. The complete Jupyter Notebook, 
+      including all code and outputs, is available using the link at bottom of the page.
+    </p>
+    
+    <h2>Code Snippet 1</h2>
+    <pre><code class="language-python">
+      """Load VRI data"""
+
+      """Description:
+      This module loads and inspects the VRI data using GeoPandas.  
+      - Reads the shapefile from a specified file path  
+      - Displays the first few rows of the dataset  
+      - Prints column names and their data types  
+      - Checks for missing values and reports them or confirms none exist
+      """
+      shapefile_path = r"C:\Users\ryanj\Desktop\project_1\tfl_38_VRI_cleaned\tfl_38_VRI_cleaned.shp"
+      tfl_38_VRI = gpd.read_file(shapefile_path)
+      
+      print(tfl_38_VRI.head())
+      
+      print(tfl_38_VRI.info())
+      
+      missing_values = tfl_38_VRI.isnull().sum()
+      
+      if missing_values.sum() == 0:
+          print("No missing values")
+      else:
+          print(missing_values)
+    </code></pre>
+
+    <h2>Code Snippet 2</h2>
+    <pre><code class="language-python">
+      """Analyze and Visualize VRI data"""
+
+      """Description:
+      This module analyzes and visualizes the VRI data using GeoPandas, Matplotlib, and Seaborn.  
+      - Computes and displays basic statistics for the dataset  
+      - Retrieves and prints the Coordinate Reference System (CRS)  
+      - Lists column names and their data types  
+      - Plots a map of the spatial data with black edges  
+      - Generates summary statistics for all columns  
+      - Creates a scatter plot matrix for numeric columns  
+      - Computes and displays a correlation matrix for numeric columns
+      """
+      print("\n--- Basic Statistics ---")
+      print(VRI_cleaned.describe())
+      print("\n--- CRS ---")
+      print(VRI_cleaned.crs)
+      print(VRI_cleaned.columns)
+
+      VRI_cleaned.plot(figsize=(10, 10), edgecolor="black")
+      plt.title("TFL 38 VRI - Map")
+      plt.show()
+
+      column_data_types = VRI_cleaned.dtypes
+      print(column_data_types)
+
+      summary_stats = VRI_cleaned.describe()
+      print("\n--- Summary Statistics ---")
+      print(summary_stats)
+      
+      sns.pairplot(VRI_cleaned)
+      plt.show()
+
+      numeric_columns = VRI_cleaned.select_dtypes(include=['float64', 'int64', 'int32'])
+      correlation_matrix = numeric_columns.corr()
+      print("\n--- Correlation Matrix ---")
+      pd.set_option("display.max_rows", None, "display.max_columns", None)
+      print(correlation_matrix)
+    </code></pre>
+
+    <h2>Code Snippet 3</h2>
+    <pre><code class="language-python">
+      """PCA Analysis and Data Augmentation for VRI Data"""
+
+      """Description:
+      This module performs Principal Component Analysis (PCA) and data augmentation on VRI data using GeoPandas, Matplotlib, and Scikit-learn.  
+      - Selects numerical features, excluding 'CROWN_CLOSURE' and 'geometry' columns  
+      - Standardizes the data using StandardScaler  
+      - Applies PCA to reduce dimensionality and plots cumulative explained variance  
+      - Determines the number of components needed to retain 95% variance  
+      - Transforms data to the selected number of principal components  
+      - Creates a new DataFrame with principal components and the target variable  
+      - Generates synthetic data (20% of original dataset size) by adding Gaussian noise to sampled features  
+      - Assigns synthetic target values and appends synthetic data to the original dataset  
+      - Outputs the shapes of the PCA-transformed and augmented datasets
+      """
+      num_features = VRI_cleaned.drop(columns=['CROWN_CLOSURE', 'geometry'])
+
+      scaler = StandardScaler()
+      num_features_scaled = scaler.fit_transform(num_features)
+
+      pca = PCA()
+      principal_components = pca.fit_transform(num_features_scaled)
+
+      plt.figure(figsize=(8, 5))
+      plt.plot(np.cumsum(pca.explained_variance_ratio_), marker='o', linestyle='--')
+      plt.xlabel('Number of Principal Components')
+      plt.ylabel('Cumulative Explained Variance')
+      plt.title('Explained Variance by Components')
+      plt.grid()
+      plt.show()
+
+      cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
+      n_components = np.argmax(cumulative_variance >= 0.95) + 1
+
+      print(f"Optimal number of components to retain 95% variance: {n_components}")
+
+      pca = PCA(n_components=n_components)
+      principal_components = pca.fit_transform(num_features_scaled)
+
+      df_pca = pd.DataFrame(principal_components, columns=[f'PC{i+1}' for i in range(n_components)])
+      df_pca['CROWN_CLOSURE'] = VRI_cleaned['CROWN_CLOSURE']
+
+      print(f"New dataset shape after PCA: {df_pca.shape}")
+
+      num_synthetic_samples = int(0.2 * len(df_pca))
+
+      X_numeric = df_pca.drop(columns=['CROWN_CLOSURE'])
+
+      np.random.seed(42)
+      noise = np.random.normal(loc=0, scale=0.01, size=(num_synthetic_samples, X_numeric.shape[1]))
+      synthetic_samples = X_numeric.sample(n=num_synthetic_samples, replace=True).values + noise
+
+      df_synthetic = pd.DataFrame(synthetic_samples, columns=X_numeric.columns)
+
+      df_synthetic['CROWN_CLOSURE'] = df_pca['CROWN_CLOSURE'].sample(n=num_synthetic_samples, replace=True).values
+
+      df_augmented = pd.concat([df_pca, df_synthetic], ignore_index=True)
+
+      print(f"Dataset shape after augmentation: {df_augmented.shape}")
+    </code></pre>
+
+    <h2>Code Snippet 4</h2>
+    <pre><code class="language-python">
+      """Model Training and Evaluation for VRI Data"""
+
+      """Description:
+      This module trains and evaluates machine learning models on PCA-transformed VRI data.  
+      - Splits the dataset into features (excluding 'CROWN_CLOSURE') and target variable  
+      - Performs an 80/20 train-test split with a fixed random seed  
+      - Defines Random Forest, SVR, and Gradient Boosting regressor models  
+      - Trains models using 5-fold cross-validation with negative mean squared error scoring  
+      - Outputs the mean cross-validation MSE scores for each model
+      """
+      # Split the data into features (X) and target variable (y)
+      X = df_pca.drop(columns='CROWN_CLOSURE')  # Features after PCA
+      y = df_pca['CROWN_CLOSURE']  # Target variable
+
+      # Split into training and testing sets (80/20 split)
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+      # Define the models
+      rf_model = RandomForestRegressor(random_state=42)
+      svr_model = SVR()
+      gbr_model = GradientBoostingRegressor(random_state=42)
+
+      # Train the models with cross-validation (using 5 folds)
+      rf_cv = cross_val_score(rf_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+      svr_cv = cross_val_score(svr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+      gbr_cv = cross_val_score(gbr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+
+      # Output the mean cross-validation scores
+      print(f"Random Forest CV MSE: {np.mean(rf_cv)}")
+      print(f"SVR CV MSE: {np.mean(svr_cv)}")
+      print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
+    </code></pre>
+
+    <h2>Code Snippet 5</h2>
+    <pre><code class="language-python">
+      """Hyperparameter Tuning and Model Evaluation for VRI Data"""
+
+      """Description:
+      This module performs hyperparameter tuning and final evaluation of machine learning models on PCA-transformed VRI data.  
+      - Defines parameter distributions for Random Forest, SVR, and Gradient Boosting regressors  
+      - Uses RandomizedSearchCV with 5-fold cross-validation to find the best hyperparameters for each model  
+      - Trains models with the best parameters on the training set  
+      - Predicts on the test set using the tuned models  
+      - Evaluates and outputs the Mean Squared Error (MSE) for each model on the test set
+      """
+      rf_param_dist = {
+          'n_estimators': [100, 200, 300],
+          'max_depth': [None, 10, 20],
+          'min_samples_split': [2, 5, 10],
+          'min_samples_leaf': [1, 2, 4]
+      }
+
+      svr_param_dist = {
+          'C': [0.1, 1, 10, 100],
+          'kernel': ['linear', 'rbf'],
+          'gamma': ['scale', 'auto']
+      }
+
+      gbr_param_dist = {
+          'n_estimators': [100, 200],
+          'learning_rate': [0.01, 0.1],
+          'max_depth': [3, 4],
+          'min_samples_split': [2, 5],
+          'min_samples_leaf': [1, 2]
+      }
+
+      rf_random_search = RandomizedSearchCV(
+          estimator=rf_model,
+          param_distributions=rf_param_dist,
+          n_iter=10,  # Limits the number of random samples
+          cv=5,
+          scoring='neg_mean_squared_error',
+          n_jobs=-1,  # Uses all available CPU cores
+          random_state=42
+      )
+
+      svr_random_search = RandomizedSearchCV(
+          estimator=svr_model,
+          param_distributions=svr_param_dist,
+          n_iter=10,
+          cv=5,
+          scoring='neg_mean_squared_error',
+          n_jobs=-1,
+          random_state=42
+      )
+
+      gbr_random_search = RandomizedSearchCV(
+          estimator=gbr_model,
+          param_distributions=gbr_param_dist,
+          n_iter=10,
+          cv=5,
+          scoring='neg_mean_squared_error',
+          n_jobs=-1,
+          random_state=42
+      )
+
+      print("Tuning Random Forest...")
+      rf_random_search.fit(X_train, y_train)
+      print("Best Random Forest Params:", rf_random_search.best_params_)
+
+      print("Tuning SVR...")
+      svr_random_search.fit(X_train, y_train)
+      print("Best SVR Params:", svr_random_search.best_params_)
+
+      print("Tuning Gradient Boosting...")
+      gbr_random_search.fit(X_train, y_train)
+      print("Best Gradient Boosting Params:", gbr_random_search.best_params_)
+
+      rf_best = RandomForestRegressor(
+          n_estimators=100, 
+          min_samples_split=2,
+          min_samples_leaf=1,
+          max_depth=None, 
+          max_features='sqrt', 
+          random_state=42
+      )
+
+      svr_best = SVR(
+          kernel='rbf',
+          gamma='auto',
+          C=100
+      )
+
+      gbr_best = GradientBoostingRegressor(
+          n_estimators=200,
+          min_samples_split=2,
+          min_samples_leaf=2,
+          max_depth=4,
+          learning_rate=0.1,
+          random_state=42
+      )
+
+      rf_best.fit(X_train, y_train)
+      svr_best.fit(X_train, y_train)
+      gbr_best.fit(X_train, y_train)
+
+      rf_preds = rf_best.predict(X_test)
+      svr_preds = svr_best.predict(X_test)
+      gbr_preds = gbr_best.predict(X_test)
+
+      rf_mse = mean_squared_error(y_test, rf_preds)
+      svr_mse = mean_squared_error(y_test, svr_preds)
+      gbr_mse = mean_squared_error(y_test, gbr_preds)
+
+      print(f"Final Random Forest MSE: {rf_mse}")
+      print(f"Final SVR MSE: {svr_mse}")
+      print(f"Final Gradient Boosting MSE: {gbr_mse}")
+    </code></pre>
+
+    <h2>Code Snippet 6</h2>
+    <pre><code class="language-python">
+      """Model Performance Evaluation and Visualization for VRI Data"""
+
+      """Description:
+      This module evaluates and visualizes the performance of machine learning models on PCA-transformed VRI data.  
+      - Computes Root Mean Squared Error (RMSE) from provided Mean Squared Error (MSE) values for Random Forest, SVR, and Gradient Boosting models  
+      - Stores and prints RMSE values for each model  
+      - Creates a bar plot to compare RMSE across models with value annotations  
+      - Calculates the standard deviation of the target variable (y_test)  
+      - Compares each model's RMSE to the target variable's standard deviation to assess performance  
+      - Identifies and prints the best-performing model based on the lowest RMSE
+      """
+      rf_rmse = np.sqrt(67.81497609147608)
+      svr_rmse = np.sqrt(85.1698000519334)
+      gbr_rmse = np.sqrt(76.12485597094468)
+
+      rmse_values = {
+          "Random Forest": rf_rmse,
+          "SVR": svr_rmse,
+          "Gradient Boosting": gbr_rmse
+      }
+
+      for model, rmse in rmse_values.items():
+          print(f"{model} RMSE: {rmse:.4f}")
+
+      plt.figure(figsize=(8, 5))
+      plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'red', 'green'])
+      plt.xlabel("Models")
+      plt.ylabel("RMSE")
+      plt.title("Model Comparison Based on RMSE")
+      plt.ylim(min(rmse_values.values()) - 2, max(rmse_values.values()) + 2)
+      plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+      for i, value in enumerate(rmse_values.values()):
+          plt.text(i, value + 0.5, f"{value:.2f}", ha='center', fontsize=12)
+
+      plt.show()
+
+      std_y_test = np.std(y_test)
+      print("\n--- Target Variable Standard Deviation ---")
+      print(std_y_test)
+
+      print("\n--- Comparison between RMSE and Standard Deviation ---")
+      for model_name, rmse in rmse_values.items():
+          if rmse < std_y_test:
+              print(f"The RMSE for {model_name} ({rmse:.2f}) is lower than the standard deviation of the target variable ({std_y_test:.2f}), indicating good model performance.")
+          elif rmse == std_y_test:
+              print(f"The RMSE for {model_name} ({rmse:.2f}) is equal to the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is performing similarly to predicting the mean value.")
+          else:
+              print(f"The RMSE for {model_name} ({rmse:.2f}) is higher than the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is not performing well.")
+              best_model = min(rmse_values, key=rmse_values.get)
+              print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[best_model]:.4f}")
+      </code></pre>
+    
+      <h2>Summary</h2>
+      <p>
+        This project uses regression-based machine learning to predict crown closure in Tree Farm Licence 38 (TFL 38) 
+        using attributes from British Columbia's Vegetation Resource Inventory (VRI). After filtering and preparing the 
+        dataset in ArcGIS Pro, models were trained on variables like basal area, live stem density, projected age, height, 
+        and biomass. Among the models tested—Random Forest, SVR, and Gradient Boosting—Random Forest performed best with an 
+        RMSE of 8.23. These results demonstrate the potential of using VRI data and machine learning to support forest structure 
+        analysis and management decisions.
+      </p>
+      
+      <h4>Model Performance Evaluation</h4>
+      <p>
+        The model performance was assessed using Mean Squared Error (MSE) and Root Mean Squared Error (RMSE), both before and 
+        after hyperparameter tuning. The post-tuning results are as follows:
+      </p>
+      <ul>
+        <li><strong>Random Forest:</strong><br>
+          MSE = <strong>67.81</strong><br>
+          RMSE = <strong>8.23</strong>
+        </li>
+        <li><strong>Support Vector Regression (SVR):</strong><br>
+          MSE = <strong>85.17</strong><br>
+          RMSE = <strong>9.23</strong>
+        </li>
+        <li><strong>Gradient Boosting:</strong><br>
+          MSE = <strong>76.12</strong><br>
+          RMSE = <strong>8.72</strong>
+        </li>
+      </ul>
+      
+      <p>
+        Among the three models, Random Forest performed the best, achieving the lowest RMSE (8.23), which suggests it had the most accurate 
+        predictions for crown closure. SVR had the highest error, indicating it struggled more with the dataset.
+      </p>
+      
+      <h4>Model Performance vs. Expectations</h4>
+      <p>
+        The models performed reasonably well. An RMSE of 8–9 means that the predicted crown closure values deviate from the actual values by 
+        about 8–9 percentage points on average. Given the complexity of forest structure, this level of error seems acceptable.
+      </p>
+      
+      <h4>Deployment Feasibility</h4>
+      <p>
+        Based on these results, Random Forest appears to be the most viable model for deployment. If crown closure predictions were being used for 
+        habitat modeling or forestry planning, further validation would be necessary.
+      </p>
+      
+      <h4>Improvements for Better Performance</h4>
+      <ul>
+        <li><strong>Hyperparameter Fine-tuning:</strong> Further optimization, especially for Gradient Boosting, might yield better results.</li>
+        <li><strong>Alternative Models:</strong> Trying other models such as neural networks or ensemble stacking could enhance performance.</li>
+      </ul>
+      
+      <h4>Effect of Hyperparameter Tuning</h4>
+      <p>MSE Results before and after tuning:</p>
+      <ul>
+        <li><strong>Random Forest:</strong><br>
+          Before tuning: MSE = <strong>-68.29</strong><br>
+          After tuning: MSE = <strong>67.81</strong>
+        </li>
+        <li><strong>Support Vector Regression (SVR):</strong><br>
+          Before tuning: MSE = <strong>-111.12</strong><br>
+          After tuning: MSE = <strong>85.17</strong>
+        </li>
+        <li><strong>Gradient Boosting:</strong><br>
+          Before tuning: MSE = <strong>-90.09</strong><br>
+          After tuning: MSE = <strong>76.12</strong>
+        </li>
+      </ul>
+      
+      <p>
+        Overall, hyperparameter tuning significantly improved performance across all models. Random Forest remained the top-performing model, 
+        followed by Gradient Boosting and then SVR.
+      </p>    
+
+  <a href="https://github.com/ryanjamesmilia/vri_regression_analysis/tree/main" target="_blank">
+    Visit the VRI Regression Analysis Project on GitHub
+  </a>
+</section>
+  
+    <p><a href="https://ryanjamesmilia.github.io/#portfolio">← Back to Portfolio</a></p>
+  </div>
+</body>
+</html>
