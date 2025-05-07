@@ -402,21 +402,11 @@
               best_model = min(rmse_values, key=rmse_values.get)
               print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[best_model]:.4f}")
       </code></pre>
-    
-      <h2>Summary</h2>
-      <p>
-        This project uses regression-based machine learning to predict crown closure in Tree Farm Licence 38 (TFL 38) 
-        using attributes from British Columbia's Vegetation Resource Inventory (VRI). After filtering and preparing the 
-        dataset in ArcGIS Pro, models were trained on variables like basal area, live stem density, projected age, height, 
-        and biomass. Among the models tested—Random Forest, SVR, and Gradient Boosting—Random Forest performed best with an 
-        RMSE of 8.23. These results demonstrate the potential of using VRI data and machine learning to support forest structure 
-        analysis and management decisions.
-      </p>
       
       <h4>Model Performance Evaluation</h4>
       <p>
         The model performance was assessed using Mean Squared Error (MSE) and Root Mean Squared Error (RMSE), both before and 
-        after hyperparameter tuning. The post-tuning results are as follows:
+        after hyperparameter tuning. The effect of hyperparameter tuning are as follows:
       </p>
       <ul>
         <li><strong>Random Forest:</strong><br>
@@ -438,24 +428,6 @@
         predictions for crown closure. SVR had the highest error, indicating it struggled more with the dataset.
       </p>
       
-      <h4>Model Performance vs. Expectations</h4>
-      <p>
-        The models performed reasonably well. An RMSE of 8–9 means that the predicted crown closure values deviate from the actual values by 
-        about 8–9 percentage points on average. Given the complexity of forest structure, this level of error seems acceptable.
-      </p>
-      
-      <h4>Deployment Feasibility</h4>
-      <p>
-        Based on these results, Random Forest appears to be the most viable model for deployment. If crown closure predictions were being used for 
-        habitat modeling or forestry planning, further validation would be necessary.
-      </p>
-      
-      <h4>Improvements for Better Performance</h4>
-      <ul>
-        <li><strong>Hyperparameter Fine-tuning:</strong> Further optimization, especially for Gradient Boosting, might yield better results.</li>
-        <li><strong>Alternative Models:</strong> Trying other models such as neural networks or ensemble stacking could enhance performance.</li>
-      </ul>
-      
       <h4>Effect of Hyperparameter Tuning</h4>
       <p>MSE Results before and after tuning:</p>
       <ul>
@@ -476,7 +448,17 @@
       <p>
         Overall, hyperparameter tuning significantly improved performance across all models. Random Forest remained the top-performing model, 
         followed by Gradient Boosting and then SVR.
-      </p>    
+      </p>
+
+  <h2>Summary</h2>
+  <p>
+        This project uses regression-based machine learning to predict crown closure in Tree Farm Licence 38 (TFL 38) 
+        using attributes from British Columbia's Vegetation Resource Inventory (VRI). After filtering and preparing the 
+        dataset in ArcGIS Pro, models were trained on variables like basal area, live stem density, projected age, height, 
+        and biomass. Among the models tested—Random Forest, SVR, and Gradient Boosting—Random Forest performed best with an 
+        RMSE of 8.23. These results demonstrate the potential of using VRI data and machine learning to support forest structure 
+        analysis and management decisions.
+  </p>
 
   <a href="https://github.com/ryanjamesmilia/vri_regression_analysis/tree/main" target="_blank">
     Visit the VRI Regression Analysis Project on GitHub
