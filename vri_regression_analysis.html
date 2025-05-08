@@ -77,34 +77,8 @@
       <strong>Note:</strong> Selected code snippets are included below to highlight key parts of the project. The complete Jupyter Notebook, 
       including all code and outputs, is available using the link at bottom of the page.
     </p>
-    
+
     <h2>Code Snippet 1</h2>
-    <pre><code class="language-python">
-      """Load VRI Data"""
-
-      """Description:
-      This module loads and inspects the VRI data using GeoPandas.  
-      - Reads the shapefile from a specified file path  
-      - Displays the first few rows of the dataset  
-      - Prints column names and their data types  
-      - Checks for missing values and reports them or confirms none exist
-      """
-      shapefile_path = r"C:\Users\ryanj\Desktop\project_1\tfl_38_VRI_cleaned\tfl_38_VRI_cleaned.shp"
-      tfl_38_VRI = gpd.read_file(shapefile_path)
-      
-      print(tfl_38_VRI.head())
-      
-      print(tfl_38_VRI.info())
-      
-      missing_values = tfl_38_VRI.isnull().sum()
-      
-      if missing_values.sum() == 0:
-          print("No missing values")
-      else:
-          print(missing_values)
-    </code></pre>
-
-    <h2>Code Snippet 2</h2>
     <pre><code class="language-python">
       """Analyze and Visualize VRI Data"""
 
@@ -145,7 +119,7 @@
       print(correlation_matrix)
     </code></pre>
 
-    <h2>Code Snippet 3</h2>
+    <h2>Code Snippet 2</h2>
     <pre><code class="language-python">
       """PCA Analysis and Data Augmentation for VRI Data"""
 
@@ -207,7 +181,7 @@
       print(f"Dataset shape after augmentation: {df_augmented.shape}")
     </code></pre>
 
-    <h2>Code Snippet 4</h2>
+    <h2>Code Snippet 3</h2>
     <pre><code class="language-python">
       """Model Training and Evaluation for VRI Data"""
 
@@ -242,123 +216,7 @@
       print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
     </code></pre>
 
-    <h2>Code Snippet 5</h2>
-    <pre><code class="language-python">
-      """Hyperparameter Tuning and Model Evaluation for VRI Data"""
-
-      """Description:
-      This module performs hyperparameter tuning and final evaluation of machine learning models on PCA-transformed VRI data.  
-      - Defines parameter distributions for Random Forest, SVR, and Gradient Boosting regressors  
-      - Uses RandomizedSearchCV with 5-fold cross-validation to find the best hyperparameters for each model  
-      - Trains models with the best parameters on the training set  
-      - Predicts on the test set using the tuned models  
-      - Evaluates and outputs the Mean Squared Error (MSE) for each model on the test set
-      """
-      rf_param_dist = {
-          'n_estimators': [100, 200, 300],
-          'max_depth': [None, 10, 20],
-          'min_samples_split': [2, 5, 10],
-          'min_samples_leaf': [1, 2, 4]
-      }
-
-      svr_param_dist = {
-          'C': [0.1, 1, 10, 100],
-          'kernel': ['linear', 'rbf'],
-          'gamma': ['scale', 'auto']
-      }
-
-      gbr_param_dist = {
-          'n_estimators': [100, 200],
-          'learning_rate': [0.01, 0.1],
-          'max_depth': [3, 4],
-          'min_samples_split': [2, 5],
-          'min_samples_leaf': [1, 2]
-      }
-
-      rf_random_search = RandomizedSearchCV(
-          estimator=rf_model,
-          param_distributions=rf_param_dist,
-          n_iter=10,  # Limits the number of random samples
-          cv=5,
-          scoring='neg_mean_squared_error',
-          n_jobs=-1,  # Uses all available CPU cores
-          random_state=42
-      )
-
-      svr_random_search = RandomizedSearchCV(
-          estimator=svr_model,
-          param_distributions=svr_param_dist,
-          n_iter=10,
-          cv=5,
-          scoring='neg_mean_squared_error',
-          n_jobs=-1,
-          random_state=42
-      )
-
-      gbr_random_search = RandomizedSearchCV(
-          estimator=gbr_model,
-          param_distributions=gbr_param_dist,
-          n_iter=10,
-          cv=5,
-          scoring='neg_mean_squared_error',
-          n_jobs=-1,
-          random_state=42
-      )
-
-      print("Tuning Random Forest...")
-      rf_random_search.fit(X_train, y_train)
-      print("Best Random Forest Params:", rf_random_search.best_params_)
-
-      print("Tuning SVR...")
-      svr_random_search.fit(X_train, y_train)
-      print("Best SVR Params:", svr_random_search.best_params_)
-
-      print("Tuning Gradient Boosting...")
-      gbr_random_search.fit(X_train, y_train)
-      print("Best Gradient Boosting Params:", gbr_random_search.best_params_)
-
-      rf_best = RandomForestRegressor(
-          n_estimators=100, 
-          min_samples_split=2,
-          min_samples_leaf=1,
-          max_depth=None, 
-          max_features='sqrt', 
-          random_state=42
-      )
-
-      svr_best = SVR(
-          kernel='rbf',
-          gamma='auto',
-          C=100
-      )
-
-      gbr_best = GradientBoostingRegressor(
-          n_estimators=200,
-          min_samples_split=2,
-          min_samples_leaf=2,
-          max_depth=4,
-          learning_rate=0.1,
-          random_state=42
-      )
-
-      rf_best.fit(X_train, y_train)
-      svr_best.fit(X_train, y_train)
-      gbr_best.fit(X_train, y_train)
-
-      rf_preds = rf_best.predict(X_test)
-      svr_preds = svr_best.predict(X_test)
-      gbr_preds = gbr_best.predict(X_test)
-
-      rf_mse = mean_squared_error(y_test, rf_preds)
-      svr_mse = mean_squared_error(y_test, svr_preds)
-      gbr_mse = mean_squared_error(y_test, gbr_preds)
-
-      print(f"Final Random Forest MSE: {rf_mse}")
-      print(f"Final SVR MSE: {svr_mse}")
-      print(f"Final Gradient Boosting MSE: {gbr_mse}")
-    </code></pre>
-
-    <h2>Code Snippet 6</h2>
+    <h2>Code Snippet 4</h2>
     <pre><code class="language-python">
       """Model Performance Evaluation and Visualization for VRI Data"""
 
