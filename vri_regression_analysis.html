@@ -121,68 +121,6 @@
 
     <h2>Code Snippet 2</h2>
     <pre><code class="language-python">
-      """PCA Analysis and Data Augmentation for VRI Data"""
-
-      """Description:
-      This module performs Principal Component Analysis (PCA) and data augmentation on VRI data using GeoPandas, Matplotlib, and Scikit-learn.  
-      - Selects numerical features, excluding 'CROWN_CLOSURE' and 'geometry' columns  
-      - Standardizes the data using StandardScaler  
-      - Applies PCA to reduce dimensionality and plots cumulative explained variance  
-      - Determines the number of components needed to retain 95% variance  
-      - Transforms data to the selected number of principal components  
-      - Creates a new DataFrame with principal components and the target variable  
-      - Generates synthetic data (20% of original dataset size) by adding Gaussian noise to sampled features  
-      - Assigns synthetic target values and appends synthetic data to the original dataset  
-      - Outputs the shapes of the PCA-transformed and augmented datasets
-      """
-      num_features = VRI_cleaned.drop(columns=['CROWN_CLOSURE', 'geometry'])
-
-      scaler = StandardScaler()
-      num_features_scaled = scaler.fit_transform(num_features)
-
-      pca = PCA()
-      principal_components = pca.fit_transform(num_features_scaled)
-
-      plt.figure(figsize=(8, 5))
-      plt.plot(np.cumsum(pca.explained_variance_ratio_), marker='o', linestyle='--')
-      plt.xlabel('Number of Principal Components')
-      plt.ylabel('Cumulative Explained Variance')
-      plt.title('Explained Variance by Components')
-      plt.grid()
-      plt.show()
-
-      cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
-      n_components = np.argmax(cumulative_variance >= 0.95) + 1
-
-      print(f"Optimal number of components to retain 95% variance: {n_components}")
-
-      pca = PCA(n_components=n_components)
-      principal_components = pca.fit_transform(num_features_scaled)
-
-      df_pca = pd.DataFrame(principal_components, columns=[f'PC{i+1}' for i in range(n_components)])
-      df_pca['CROWN_CLOSURE'] = VRI_cleaned['CROWN_CLOSURE']
-
-      print(f"New dataset shape after PCA: {df_pca.shape}")
-
-      num_synthetic_samples = int(0.2 * len(df_pca))
-
-      X_numeric = df_pca.drop(columns=['CROWN_CLOSURE'])
-
-      np.random.seed(42)
-      noise = np.random.normal(loc=0, scale=0.01, size=(num_synthetic_samples, X_numeric.shape[1]))
-      synthetic_samples = X_numeric.sample(n=num_synthetic_samples, replace=True).values + noise
-
-      df_synthetic = pd.DataFrame(synthetic_samples, columns=X_numeric.columns)
-
-      df_synthetic['CROWN_CLOSURE'] = df_pca['CROWN_CLOSURE'].sample(n=num_synthetic_samples, replace=True).values
-
-      df_augmented = pd.concat([df_pca, df_synthetic], ignore_index=True)
-
-      print(f"Dataset shape after augmentation: {df_augmented.shape}")
-    </code></pre>
-
-    <h2>Code Snippet 3</h2>
-    <pre><code class="language-python">
       """Model Training and Evaluation for VRI Data"""
 
       """Description:
@@ -216,7 +154,7 @@
       print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
     </code></pre>
 
-    <h2>Code Snippet 4</h2>
+    <h2>Code Snippet 3</h2>
     <pre><code class="language-python">
       """Model Performance Evaluation and Visualization for VRI Data"""
 
