@@ -80,133 +80,135 @@
 
     <h2>Code Snippet 1</h2>
     <pre><code class="language-python">
-      """Analyze and Visualize VRI Data"""
+"""Analyze and Visualize VRI Data"""
 
-      """Description:
-      This module analyzes and visualizes the VRI data using GeoPandas, Matplotlib, and Seaborn.  
-      - Computes and displays basic statistics for the dataset  
-      - Retrieves and prints the Coordinate Reference System (CRS)  
-      - Lists column names and their data types  
-      - Plots a map of the spatial data with black edges  
-      - Generates summary statistics for all columns  
-      - Creates a scatter plot matrix for numeric columns  
-      - Computes and displays a correlation matrix for numeric columns
-      """
-      print("\n--- Basic Statistics ---")
-      print(VRI_cleaned.describe())
-      print("\n--- CRS ---")
-      print(VRI_cleaned.crs)
-      print(VRI_cleaned.columns)
+"""Description:
+This module analyzes and visualizes the VRI data using GeoPandas, Matplotlib, and Seaborn.  
+- Computes and displays basic statistics for the dataset  
+- Retrieves and prints the Coordinate Reference System (CRS)  
+- Lists column names and their data types  
+- Plots a map of the spatial data with black edges  
+- Generates summary statistics for all columns  
+- Creates a scatter plot matrix for numeric columns  
+- Computes and displays a correlation matrix for numeric columns
+"""
+print("\n--- Basic Statistics ---")
+print(VRI_cleaned.describe())
+print("\n--- CRS ---")
+print(VRI_cleaned.crs)
+print(VRI_cleaned.columns)
 
-      VRI_cleaned.plot(figsize=(10, 10), edgecolor="black")
-      plt.title("TFL 38 VRI - Map")
-      plt.show()
+VRI_cleaned.plot(figsize=(10, 10), edgecolor="black")
+plt.title("TFL 38 VRI - Map")
+plt.show()
 
-      column_data_types = VRI_cleaned.dtypes
-      print(column_data_types)
+column_data_types = VRI_cleaned.dtypes
+print(column_data_types)
 
-      summary_stats = VRI_cleaned.describe()
-      print("\n--- Summary Statistics ---")
-      print(summary_stats)
-      
-      sns.pairplot(VRI_cleaned)
-      plt.show()
+summary_stats = VRI_cleaned.describe()
+print("\n--- Summary Statistics ---")
+print(summary_stats)
 
-      numeric_columns = VRI_cleaned.select_dtypes(include=['float64', 'int64', 'int32'])
-      correlation_matrix = numeric_columns.corr()
-      print("\n--- Correlation Matrix ---")
-      pd.set_option("display.max_rows", None, "display.max_columns", None)
-      print(correlation_matrix)
+sns.pairplot(VRI_cleaned)
+plt.show()
+
+numeric_columns = VRI_cleaned.select_dtypes(include=['float64', 'int64', 'int32'])
+correlation_matrix = numeric_columns.corr()
+print("\n--- Correlation Matrix ---")
+pd.set_option("display.max_rows", None, "display.max_columns", None)
+print(correlation_matrix)
     </code></pre>
 
     <h2>Code Snippet 2</h2>
     <pre><code class="language-python">
-      """Model Training and Evaluation for VRI Data"""
+"""Model Training and Evaluation for VRI Data"""
 
-      """Description:
-      This module trains and evaluates machine learning models on PCA-transformed VRI data.  
-      - Splits the dataset into features (excluding 'CROWN_CLOSURE') and target variable  
-      - Performs an 80/20 train-test split with a fixed random seed  
-      - Defines Random Forest, SVR, and Gradient Boosting regressor models  
-      - Trains models using 5-fold cross-validation with negative mean squared error scoring  
-      - Outputs the mean cross-validation MSE scores for each model
-      """
-      # Split the data into features (X) and target variable (y)
-      X = df_pca.drop(columns='CROWN_CLOSURE')  # Features after PCA
-      y = df_pca['CROWN_CLOSURE']  # Target variable
+"""Description:
+This module trains and evaluates machine learning models on PCA-transformed VRI data.  
+- Splits the dataset into features (excluding 'CROWN_CLOSURE') and target variable  
+- Performs an 80/20 train-test split with a fixed random seed  
+- Defines Random Forest, SVR, and Gradient Boosting regressor models  
+- Trains models using 5-fold cross-validation with negative mean squared error scoring  
+- Outputs the mean cross-validation MSE scores for each model
+"""
+# Split the data into features (X) and target variable (y)
+X = df_pca.drop(columns='CROWN_CLOSURE')  # Features after PCA
+y = df_pca['CROWN_CLOSURE']  # Target variable
 
-      # Split into training and testing sets (80/20 split)
-      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Split into training and testing sets (80/20 split)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-      # Define the models
-      rf_model = RandomForestRegressor(random_state=42)
-      svr_model = SVR()
-      gbr_model = GradientBoostingRegressor(random_state=42)
+# Define the models
+rf_model = RandomForestRegressor(random_state=42)
+svr_model = SVR()
+gbr_model = GradientBoostingRegressor(random_state=42)
 
-      # Train the models with cross-validation (using 5 folds)
-      rf_cv = cross_val_score(rf_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
-      svr_cv = cross_val_score(svr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
-      gbr_cv = cross_val_score(gbr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+# Train the models with cross-validation (using 5 folds)
+rf_cv = cross_val_score(rf_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+svr_cv = cross_val_score(svr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+gbr_cv = cross_val_score(gbr_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
 
-      # Output the mean cross-validation scores
-      print(f"Random Forest CV MSE: {np.mean(rf_cv)}")
-      print(f"SVR CV MSE: {np.mean(svr_cv)}")
-      print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
+# Output the mean cross-validation scores
+print(f"Random Forest CV MSE: {np.mean(rf_cv)}")
+print(f"SVR CV MSE: {np.mean(svr_cv)}")
+print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
     </code></pre>
 
     <h2>Code Snippet 3</h2>
     <pre><code class="language-python">
-      """Model Performance Evaluation and Visualization for VRI Data"""
+"""Model Performance Evaluation and Visualization for VRI Data"""
 
-      """Description:
-      This module evaluates and visualizes the performance of machine learning models on PCA-transformed VRI data.  
-      - Computes Root Mean Squared Error (RMSE) from provided Mean Squared Error (MSE) values for Random Forest, SVR, and Gradient Boosting models  
-      - Stores and prints RMSE values for each model  
-      - Creates a bar plot to compare RMSE across models with value annotations  
-      - Calculates the standard deviation of the target variable (y_test)  
-      - Compares each model's RMSE to the target variable's standard deviation to assess performance  
-      - Identifies and prints the best-performing model based on the lowest RMSE
-      """
-      rf_rmse = np.sqrt(67.81497609147608)
-      svr_rmse = np.sqrt(85.1698000519334)
-      gbr_rmse = np.sqrt(76.12485597094468)
+"""Description:
+This module evaluates and visualizes the performance of machine learning models on PCA-transformed VRI data.  
+- Computes Root Mean Squared Error (RMSE) from provided Mean Squared Error (MSE) values for Random Forest, SVR, and Gradient Boosting models  
+- Stores and prints RMSE values for each model  
+- Creates a bar plot to compare RMSE across models with value annotations  
+- Calculates the standard deviation of the target variable (y_test)  
+- Compares each model's RMSE to the target variable's standard deviation to assess performance  
+- Identifies and prints the best-performing model based on the lowest RMSE
+"""
 
-      rmse_values = {
-          "Random Forest": rf_rmse,
-          "SVR": svr_rmse,
-          "Gradient Boosting": gbr_rmse
-      }
+rf_rmse = np.sqrt(67.81497609147608)
+svr_rmse = np.sqrt(85.1698000519334)
+gbr_rmse = np.sqrt(76.12485597094468)
 
-      for model, rmse in rmse_values.items():
-          print(f"{model} RMSE: {rmse:.4f}")
+rmse_values = {
+    "Random Forest": rf_rmse,
+    "SVR": svr_rmse,
+    "Gradient Boosting": gbr_rmse
+}
 
-      plt.figure(figsize=(8, 5))
-      plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'red', 'green'])
-      plt.xlabel("Models")
-      plt.ylabel("RMSE")
-      plt.title("Model Comparison Based on RMSE")
-      plt.ylim(min(rmse_values.values()) - 2, max(rmse_values.values()) + 2)
-      plt.grid(axis='y', linestyle='--', alpha=0.7)
+for model, rmse in rmse_values.items():
+    print(f"{model} RMSE: {rmse:.4f}")
 
-      for i, value in enumerate(rmse_values.values()):
-          plt.text(i, value + 0.5, f"{value:.2f}", ha='center', fontsize=12)
+plt.figure(figsize=(8, 5))
+plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'red', 'green'])
+plt.xlabel("Models")
+plt.ylabel("RMSE")
+plt.title("Model Comparison Based on RMSE")
+plt.ylim(min(rmse_values.values()) - 2, max(rmse_values.values()) + 2)
+plt.grid(axis='y', linestyle='--', alpha=0.7)
 
-      plt.show()
+for i, value in enumerate(rmse_values.values()):
+    plt.text(i, value + 0.5, f"{value:.2f}", ha='center', fontsize=12)
 
-      std_y_test = np.std(y_test)
-      print("\n--- Target Variable Standard Deviation ---")
-      print(std_y_test)
+plt.show()
 
-      print("\n--- Comparison between RMSE and Standard Deviation ---")
-      for model_name, rmse in rmse_values.items():
-          if rmse < std_y_test:
-              print(f"The RMSE for {model_name} ({rmse:.2f}) is lower than the standard deviation of the target variable ({std_y_test:.2f}), indicating good model performance.")
-          elif rmse == std_y_test:
-              print(f"The RMSE for {model_name} ({rmse:.2f}) is equal to the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is performing similarly to predicting the mean value.")
-          else:
-              print(f"The RMSE for {model_name} ({rmse:.2f}) is higher than the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is not performing well.")
-              best_model = min(rmse_values, key=rmse_values.get)
-              print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[best_model]:.4f}")
+std_y_test = np.std(y_test)
+print("\n--- Target Variable Standard Deviation ---")
+print(std_y_test)
+
+print("\n--- Comparison between RMSE and Standard Deviation ---")
+for model_name, rmse in rmse_values.items():
+    if rmse < std_y_test:
+        print(f"The RMSE for {model_name} ({rmse:.2f}) is lower than the standard deviation of the target variable ({std_y_test:.2f}), indicating good model performance.")
+    elif rmse == std_y_test:
+        print(f"The RMSE for {model_name} ({rmse:.2f}) is equal to the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is performing similarly to predicting the mean value.")
+    else:
+        print(f"The RMSE for {model_name} ({rmse:.2f}) is higher than the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is not performing well.")
+
+best_model = min(rmse_values, key=rmse_values.get)
+print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[best_model]:.4f}")
       </code></pre>
       
       <h4>Model Performance Evaluation</h4>
