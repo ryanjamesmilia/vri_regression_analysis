@@ -74,7 +74,8 @@
       all projects except for TFL 38, a tree farm licence located northwest of Squamish, BC. I also filtered out all unnecessary fields.
     </p>
     <p>
-      <strong>Note:</strong> Selected code snippets are included below to highlight key parts of the project. The complete Jupyter Notebook, 
+      <strong>Note:</strong> 
+      Selected code snippets are included below to highlight key parts of the project. The complete Jupyter Notebook, 
       including all code and outputs, is available using the link at bottom of the page.
     </p>
 
@@ -153,68 +154,11 @@ print(f"Random Forest CV MSE: {np.mean(rf_cv)}")
 print(f"SVR CV MSE: {np.mean(svr_cv)}")
 print(f"Gradient Boosting CV MSE: {np.mean(gbr_cv)}")
     </code></pre>
-
-    <h2>Code Snippet 3</h2>
-    <pre><code class="language-python">
-"""Model Performance Evaluation and Visualization for VRI Data"""
-
-"""Description:
-This module evaluates and visualizes the performance of machine learning models on PCA-transformed VRI data.  
-- Computes Root Mean Squared Error (RMSE) from provided Mean Squared Error (MSE) values for Random Forest, SVR, and Gradient Boosting models  
-- Stores and prints RMSE values for each model  
-- Creates a bar plot to compare RMSE across models with value annotations  
-- Calculates the standard deviation of the target variable (y_test)  
-- Compares each model's RMSE to the target variable's standard deviation to assess performance  
-- Identifies and prints the best-performing model based on the lowest RMSE
-"""
-
-rf_rmse = np.sqrt(67.81497609147608)
-svr_rmse = np.sqrt(85.1698000519334)
-gbr_rmse = np.sqrt(76.12485597094468)
-
-rmse_values = {
-    "Random Forest": rf_rmse,
-    "SVR": svr_rmse,
-    "Gradient Boosting": gbr_rmse
-}
-
-for model, rmse in rmse_values.items():
-    print(f"{model} RMSE: {rmse:.4f}")
-
-plt.figure(figsize=(8, 5))
-plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'red', 'green'])
-plt.xlabel("Models")
-plt.ylabel("RMSE")
-plt.title("Model Comparison Based on RMSE")
-plt.ylim(min(rmse_values.values()) - 2, max(rmse_values.values()) + 2)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-
-for i, value in enumerate(rmse_values.values()):
-    plt.text(i, value + 0.5, f"{value:.2f}", ha='center', fontsize=12)
-
-plt.show()
-
-std_y_test = np.std(y_test)
-print("\n--- Target Variable Standard Deviation ---")
-print(std_y_test)
-
-print("\n--- Comparison between RMSE and Standard Deviation ---")
-for model_name, rmse in rmse_values.items():
-    if rmse < std_y_test:
-        print(f"The RMSE for {model_name} ({rmse:.2f}) is lower than the standard deviation of the target variable ({std_y_test:.2f}), indicating good model performance.")
-    elif rmse == std_y_test:
-        print(f"The RMSE for {model_name} ({rmse:.2f}) is equal to the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is performing similarly to predicting the mean value.")
-    else:
-        print(f"The RMSE for {model_name} ({rmse:.2f}) is higher than the standard deviation of the target variable ({std_y_test:.2f}), suggesting that the model is not performing well.")
-
-best_model = min(rmse_values, key=rmse_values.get)
-print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[best_model]:.4f}")
-      </code></pre>
       
       <h4>Model Performance Evaluation</h4>
       <p>
         The model performance was assessed using Mean Squared Error (MSE) and Root Mean Squared Error (RMSE), both before and 
-        after hyperparameter tuning. The effect of hyperparameter tuning are as follows:
+        after hyperparameter tuning. The final performance for each model is found below:
       </p>
       <ul>
         <li><strong>Random Forest:</strong><br>
@@ -236,36 +180,13 @@ print(f"The best-performing model is: {best_model} with an RMSE of {rmse_values[
         predictions for crown closure. SVR had the highest error, indicating it struggled more with the dataset.
       </p>
       
-      <h4>Effect of Hyperparameter Tuning</h4>
-      <ul>
-        <li><strong>Random Forest:</strong><br>
-          Before tuning: MSE = <strong>-68.29</strong><br>
-          After tuning: MSE = <strong>67.81</strong>
-        </li>
-        <li><strong>Support Vector Regression (SVR):</strong><br>
-          Before tuning: MSE = <strong>-111.12</strong><br>
-          After tuning: MSE = <strong>85.17</strong>
-        </li>
-        <li><strong>Gradient Boosting:</strong><br>
-          Before tuning: MSE = <strong>-90.09</strong><br>
-          After tuning: MSE = <strong>76.12</strong>
-        </li>
-      </ul>
-      
-      <p>
-        Overall, hyperparameter tuning significantly improved performance across all models. Random Forest remained the top-performing model, 
-        followed by Gradient Boosting and then SVR.
-      </p>
-
   <h2>Summary</h2>
-  <p>
-        This project uses regression-based machine learning to predict crown closure in Tree Farm Licence 38 (TFL 38) 
-        using attributes from British Columbia's Vegetation Resource Inventory (VRI). After filtering and preparing the 
-        dataset in ArcGIS Pro, models were trained on variables like basal area, live stem density, projected age, height, 
-        and biomass. Among the models tested—Random Forest, SVR, and Gradient Boosting—Random Forest performed best with an 
-        RMSE of 8.23. These results demonstrate the potential of using VRI data and machine learning to support forest structure 
-        analysis and management decisions.
-  </p>
+      <p>
+        This project used regression-based machine learning to predict crown closure in TFL 38 using attributes from BC's VRI dataset. 
+        After filtering and preparing the dataset in ArcGIS Pro, models were trained on the following variables: basal area, live stem density, 
+        projected age, height, and biomass. Among the models tested, Random Forest performed the best with an RMSE of 8.23. These results 
+        demonstrate the potential of using VRI data and machine learning to support forest structure analysis and management decisions.
+      </p>
 
   <a href="https://github.com/ryanjamesmilia/vri_regression_analysis/tree/main" target="_blank">
     Visit the VRI Regression Analysis Project on GitHub
